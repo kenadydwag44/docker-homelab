@@ -1,0 +1,91 @@
+version: "3"
+
+services:
+  jellyfin:
+    image: linuxserver/jellyfin
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./jellyfin_config:/config
+      - ${TV_PATH}:/data/tvshows
+      - ${MOVIE_PATH}:/data/movies
+      - ${ANIME_PATH}:/data/anime
+    ports:
+      - 8096:8096
+    restart: unless-stopped
+  sonarr:
+      image: linuxserver/sonarr
+      container_name: sonarr
+      environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      volumes:
+        - ./sonarr_config:/config
+        - ${ANIME_PATH}:/anime
+        - ${TV_PATH}:/tvshows
+        - ${COMPLETE_DOWNLOAD}:/downloads/complete
+      ports:
+        - 8989:8989
+      restart: unless-stopped
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./radarr_config:/config
+      - ${COMPLETE_DOWNLOAD}:/downloads/complete
+      - ${MOVIE_PATH}:/movies
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./bazarr_config:/config
+      - ${MOVIE_PATH}:/movies
+      - ${TV_PATH}:/tvshows
+      - ${ANIME_PATH}:/anime
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=${TZ}
+    ports:
+      - 5055:5055
+    volumes:
+      - ./jellyseerr_config:/app/config
+    restart: unless-stopped
+    depends_on:
+      - radarr
+      - sonarr
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./sabnzbd_config:/config
+      - ${COMPLETE_DOWNLOAD}:/downloads
+      - ${INCOMPLETE_DOWNLOAD}:/incomplete-downloads
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+ 
